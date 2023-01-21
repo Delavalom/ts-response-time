@@ -72,7 +72,7 @@ const createSetHeader = (options: Options) => {
     ? Boolean(options.suffix)
     : true
 
-  return function setResponseHeader (req: Request, res: Response, time: number) {
+  return function setResponseHeader (_req: Request, res: Response, time: number) {
     if (res.getHeader(header)) {
       return
     }
