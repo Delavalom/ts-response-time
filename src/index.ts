@@ -1,15 +1,7 @@
-type Response = Record<string, any>
+import { IncomingMessage, ServerResponse } from "http";
 
-export type NextFunction = {
-    (err?: any): void;
-    // "Break-out" of a router by calling {next('router')};
-    (deferToNext: 'router'): void;
-    // "Break-out" of a route by calling {next('route')};
-    (deferToNext: 'route'): void;
-}
-
-var deprecate = require('depd')('response-time')
-var onHeaders = require('on-headers')
+type Options = { digits?: number; header?: string; suffix?: boolean };
+type NextFunction = (err?: any) => void;
 
 /**
  * Create a middleware to add a `X-Response-Time` header displaying
@@ -23,66 +15,52 @@ var onHeaders = require('on-headers')
  * @public
  */
 
-function responseTime (options = {}) {
-
-
-  if (typeof options === 'number') {
-    // back-compat single number argument
-    deprecate('number argument: use {digits: ' + JSON.stringify(options) + '} instead')
-    options = { digits: options }
-  }
-
+const responseTime = (options = {}) => {
   // get the function to invoke
-  const fn = typeof options !== 'function'
-    ? createSetHeader(options)
-    : options
+  const fn = typeof options !== "function" ? createSetHeader(options) : options;
 
-  return function responseTime (req: Request, res: Response, next: NextFunction) {
-    const startAt = process.hrtime()
+  return function responseTime(
+    req: IncomingMessage,
+    res: ServerResponse,
+    next: NextFunction
+  ) {
+    const startAt = process.hrtime();
 
-    onHeaders(res, function onHeaders () {
-      const diff = process.hrtime(startAt)
-      const time = diff[0] * 1e3 + diff[1] * 1e-6
+    // create onHeader
 
-      fn(req, res, time)
-    })
+    // onHeaders(res, function onHeaders() {
+    //   const diff = process.hrtime(startAt);
+    //   const currentTime = diff[0] * 1000 + diff[1] * 1000_000;
 
-    next()
-  }
-}
+    //   fn(req, res, currentTime);
+    // });
+
+    next();
+  };
+};
 
 /**
  * Create function to set respoonse time header.
  * @private
  */
 
-type Options = { digits?: number, header?: string, suffix?: boolean }
-
-const createSetHeader = (options: Options) => {
-  // response time digits
-  const digits = options.digits !== undefined
-    ? options.digits
-    : 3
-
-  // header name
-  const header = options.header || 'X-Response-Time'
-
-  // display suffix
-  const suffix = options.suffix !== undefined
-    ? Boolean(options.suffix)
-    : true
-
-  return function setResponseHeader (_req: Request, res: Response, time: number) {
-    if (res.getHeader(header)) {
-      return
+const createSetHeader = (
+  options: Options = { digits: 3, header: "X-Response-Time", suffix: true }
+) => {
+  return function setResponseHeader(
+    _req: IncomingMessage,
+    res: ServerResponse,
+    time: number
+  ) {
+    if (res.getHeader(options.header as string)) {
+      return;
     }
 
-    let val = time.toFixed(digits)
-
-    if (suffix) {
-      val += 'ms'
+    let val = time.toFixed(options.digits);
+    if (options.suffix) {
+      val += "ms";
     }
 
-    res.setHeader(header, val)
-  }
-}
+    res.setHeader(options.header as string, val);
+  };
+};

@@ -1,5 +1,6 @@
 {
     "name": "ts-response-time",
+    "description": "Middleware for adding X-response-time header in milliseconds built with TypeScript",
     "version": "0.0.1",
     "main": "dist/index.js",
     "module": "dist/index.mjs",
@@ -11,10 +12,15 @@
     "devDependencies": {
         "@changesets/cli": "^2.26.0",
         "@types/node": "^18.11.18",
+        "@types/on-headers": "^1.0.0",
         "nodemon": "^2.0.20",
         "ts-node": "^10.9.1",
         "tsup": "^6.5.0",
         "typescript": "^4.9.4"
     },
-    "license": "MIT"
+    "author": "Luis Angel Arvelo <laarvelo@7streetlabs.com>",
+    "license": "MIT",
+    "dependencies": {
+        "@types/response-time": "^2.3.5"
+    }
 }
